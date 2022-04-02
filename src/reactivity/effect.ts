@@ -6,11 +6,12 @@ class ReactiveEffect {
 
     run () {
         activeEffect = this;
-        this._fn();        
+        return this._fn();        
     }
 }
 const targetMap = new Map();
 export function track (target, key) {
+    /* target -> key -> dep */
     let depsMap = targetMap.get(target);
     if (!depsMap) {
         depsMap = new Map();
@@ -36,6 +37,6 @@ export function trigger (target, key) {
 let activeEffect;
 export function effect (fn) {
     const _effect = new ReactiveEffect(fn);
-
     _effect.run();
+    return _effect.run.bind(_effect);
 }
