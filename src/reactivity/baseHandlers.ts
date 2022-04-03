@@ -1,4 +1,5 @@
 import { track, trigger } from "./effect";
+import { ObjectFlags } from "./shared/enum";
 
 const get = createGetter();
 const set = createSetter();
@@ -6,6 +7,8 @@ const readonlyGet = createGetter(true);
 
 function createGetter (isReadonly = false) {
     return function get (target, key) {
+        if (key == ObjectFlags.IS_REACTIVE) return !isReadonly;
+        if (key == ObjectFlags.IS_READONLY) return isReadonly;
         const res = Reflect.get(target, key);
         if (!isReadonly) track(target, key);
         return res;
