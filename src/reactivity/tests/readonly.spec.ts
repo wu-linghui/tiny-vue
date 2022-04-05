@@ -1,4 +1,4 @@
-import { isReactive, isReadonly, readonly } from "../reactive";
+import { isProxy, isReactive, isReadonly, readonly } from "../reactive";
 
 describe("readonly", () => {
     /* 解决嵌套对象 */
@@ -10,6 +10,7 @@ describe("readonly", () => {
         expect(isReadonly(original)).toBe(false);
         expect(isReadonly(wrapped.bar)).toBe(true);
         expect(isReadonly(original.bar)).toBe(false);
+        expect(isProxy(wrapped)).toBe(true);
         expect(wrapped.foo).toBe(1);
     });
 
