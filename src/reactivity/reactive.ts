@@ -1,4 +1,4 @@
-import { mutableHandlers, readonlyHandlers } from "./baseHandlers";
+import { mutableHandlers, readonlyHandlers, shallowHandlers } from "./baseHandlers";
 import { ObjectFlags } from "./shared/enum";
 
 export function reactive (raw) {
@@ -7,6 +7,10 @@ export function reactive (raw) {
 
 export function readonly (raw) {
     return createActiveObject(raw, readonlyHandlers);
+}
+
+export function shallowReadonly(raw) {
+    return createActiveObject(raw, shallowHandlers);
 }
 
 function createActiveObject (raw, baseHandler) {
