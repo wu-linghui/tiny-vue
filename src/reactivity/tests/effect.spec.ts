@@ -61,14 +61,16 @@ describe("effect", () => {
 
     it("stop", () => {
         let dummy;
-        const obj = reactive({prop: 1});
+        const obj = reactive({prop: 1, foo: 1});
         const runner = effect(() => {
             dummy = obj.prop;
         });
         obj.prop = 2;
         expect(dummy).toBe(2);
         stop(runner);
-        obj.prop = 3;
+        // obj.prop = 3;
+        obj.prop++
+        expect(obj.prop).toBe(3);
         expect(dummy).toBe(2);
         runner();
         expect(dummy).toBe(3);
