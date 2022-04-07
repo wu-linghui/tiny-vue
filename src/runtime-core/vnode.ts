@@ -8,7 +8,7 @@ export function createVNode (type, props?, children?) {
         shapeFlags: getShapeFlage(type),
         el: null
     };
-    debugger;
+    // debugger;
     if (typeof children === "string") vnode.shapeFlags |= 4;
     if (Array.isArray(children)) vnode.shapeFlags |= 8;
     return vnode;

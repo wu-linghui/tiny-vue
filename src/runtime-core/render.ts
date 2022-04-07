@@ -28,7 +28,9 @@ function mountElement (vnode: any, container: any) {
     for (const key in props) {
         if (Object.prototype.hasOwnProperty.call(props, key)) {
             const val = props[key];
-            el.setAttribute(key, val);
+            const isOnEvent = (key: string) => /^on[A-Z]/.test(key);
+            isOnEvent(key) ? el.addEventListener(key.slice(2).toLowerCase(), val)
+            : el.setAttribute(key, val);            
         }
     }
 

@@ -1,9 +1,9 @@
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 
-export function createComponentInstance (vnode) {
+export function createComponentInstance (initVNode) {
     const component = {
-        vnode,
-        type: vnode.type,
+        vnode: initVNode,
+        type: initVNode.type,
         setupState: {}
     };
     return component;
