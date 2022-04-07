@@ -1,4 +1,5 @@
 import { isObject } from "../reactivity/shared/index";
+import { ShapeFlags } from "../reactivity/shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render (vnode: any, container: any) {
@@ -6,8 +7,9 @@ export function render (vnode: any, container: any) {
 }
 
 function patch (vnode: any , container: any) {
-    if (typeof vnode.type === "string") processElement(vnode, container);
-    if (isObject(vnode.type)) processComponent(vnode, container);
+    const { shapeFlags } = vnode;
+    if (shapeFlags & ShapeFlags.ELEMENT) processElement(vnode, container);
+    if (shapeFlags & ShapeFlags.STATEFUL_COMPONENT) processComponent(vnode, container);
 }
 
 function processElement (vnode: any, container: any) {
@@ -15,14 +17,12 @@ function processElement (vnode: any, container: any) {
 }
 
 function mountElement (vnode: any, container: any) {
-    const el = document.createElement(vnode.type);
-    const { children } = vnode;
+    const el = vnode.el = document.createElement(vnode.type);
+    const { children, shapeFlags } = vnode;
 
-    if (typeof children === "string") el.textContent = children;
-    if (Array.isArray(children)) {
-        children.forEach((h) => {
-            patch(h, el);
-        })
+    if (shapeFlags & ShapeFlags.TEXT_CHILDREN) el.textContent = children;
+    if (shapeFlags & ShapeFlags.ARRAY_CHILDREN) {        
+        mountChildren(children, el);
     };
     const { props } = vnode;
     for (const key in props) {
@@ -35,21 +35,26 @@ function mountElement (vnode: any, container: any) {
     container.append(el);
 }
 
-function mountChildren () {
-
+function mountChildren (children, container) {
+    children.forEach((h) => {
+        patch(h, container);
+    })
 }
 
 function processComponent (vnode:any, container: any) {
     mountComponent(vnode, container);
 }
 
-function  mountComponent (vnode: any, container: any) {
-    const instance = createComponentInstance(vnode);
+function  mountComponent (initVNode: any, container: any) {
+    const instance = createComponentInstance(initVNode);
     setupComponent(instance);
-    setupRenderEffect(instance, container);
+    setupRenderEffect(instance, initVNode, container);
 }
 
-function setupRenderEffect (instance: any, container: any) {
-    const subTree = instance.render();
+function setupRenderEffect (instance: any, initVNode: any, container: any) {
+    const { proxy } = instance;
+    const subTree = instance.render.call(proxy);
     patch(subTree, container);
+    // element -> 全部挂载后将element的真实DOM指向到component的el上
+    initVNode.el = subTree.el;
 }
