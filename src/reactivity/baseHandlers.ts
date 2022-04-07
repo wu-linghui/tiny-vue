@@ -1,7 +1,7 @@
 import { track, trigger } from "./effect";
 import { reactive, readonly } from "./reactive";
-import { extend, isObject } from "./shared";
-import { ObjectFlags } from "./shared/enum";
+import { extend, isObject } from "../shared";
+import { ObjectFlags } from "../shared/enum";
 
 const get = createGetter();
 const set = createSetter();
@@ -40,7 +40,7 @@ export const mutableHandlers = {
 export const readonlyHandlers = {
     get: readonlyGet,
     set (target, key, val) {
-        console.warn("warn");
+        console.warn("warn readonly类型");
         return true;
     }
 }

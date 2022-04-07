@@ -1,5 +1,5 @@
-import { isObject } from "../reactivity/shared/index";
-import { ShapeFlags } from "../reactivity/shared/ShapeFlage";
+import { isObject } from "../shared/index";
+import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render (vnode: any, container: any) {

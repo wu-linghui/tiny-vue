@@ -1,4 +1,4 @@
-import { ShapeFlags } from "../reactivity/shared/ShapeFlage";
+import { ShapeFlags } from "../shared/ShapeFlage";
 
 export function createVNode (type, props?, children?) {
     const vnode = {

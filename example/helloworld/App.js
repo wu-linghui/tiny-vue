@@ -1,5 +1,7 @@
 import { h } from '../../lib/guide-wlh-vue.es.js';
+import { Foo } from './Foo.js';
 window.$self = null;
+
 export const App = {
     render() {
         window.$self = this;
@@ -12,8 +14,10 @@ export const App = {
                     console.log("click");
                 }
             },
-            "hi" + this.msg,
-            // [h("p", {class: "red"}, "hi"), h("p", {class: "blue"}, "yhxmnz")]
+            // "hi" + this.msg,
+            [h("p", {class: "red"}, "hi"), h(Foo, {
+                count: 1
+            })]
         );
     },
 

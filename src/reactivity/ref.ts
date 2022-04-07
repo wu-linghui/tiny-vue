@@ -1,7 +1,7 @@
 import { isTracking, trackEffects, triggerEffects } from "./effect";
 import { reactive } from "./reactive";
-import { hasChange, isObject } from "./shared";
-import { ObjectFlags } from "./shared/enum";
+import { hasChange, isObject } from "../shared";
+import { ObjectFlags } from "../shared/enum";
 
 class RefImpl {
     private _value: any;
