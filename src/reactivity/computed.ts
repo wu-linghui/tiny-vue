@@ -4,7 +4,9 @@ class ComputedRefImpl {
     _value: any;
     _dirty: boolean = true;
     _effect: any;
+    // private _getter: any;
     constructor (getter) {
+        // this._getter = getter;
         this._effect = new ReactiveEffect(getter, () => {
             if (!this._dirty) this._dirty = true;
         })
@@ -14,6 +16,7 @@ class ComputedRefImpl {
         if (this._dirty) {
             this._dirty = false;
             this._value = this._effect.run();
+            // this._value = this._getter();
         }
         return this._value;
     }
