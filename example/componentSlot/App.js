@@ -1,4 +1,5 @@
 import { h } from '../../lib/guide-wlh-vue.es.js';
+import { createTextVNode } from '../../lib/guide-wlh-vue.es.js';
 import { Foo } from './Foo.js';
 window.$self = null;
 
@@ -7,7 +8,7 @@ export const App = {
         window.$self = this;
         const app = h("div", {}, "App");
         const foo = h(Foo, {}, {
-            top: ({age}) => h("p", {}, "123" + age), 
+            top: ({age}) => [h("p", {}, "123" + age), createTextVNode("wlh")], 
             bottom: () => h("p", {}, "321")
         });
         // const foo = h(Foo, {}, h("p", {}, "123"));
