@@ -6,14 +6,14 @@ export function createVNode (type, props?, children?) {
         type, 
         props,
         children,
-        shapeFlags: getShapeFlage(type),
+        shapeFlag: getShapeFlage(type),
         el: null
     };
     // debugger;
-    if (typeof children === "string") vnode.shapeFlags |= 4;
-    if (Array.isArray(children)) vnode.shapeFlags |= 8;
-    if ((vnode.shapeFlags & ShapeFlags.SLOT_CHILDREN) && (typeof children === "object")) {
-        vnode.shapeFlags |= ShapeFlags.SLOT_CHILDREN;
+    if (typeof children === "string") vnode.shapeFlag |= 4;
+    if (Array.isArray(children)) vnode.shapeFlag |= 8;
+    if ((vnode.shapeFlag & ShapeFlags.SLOT_CHILDREN) && (typeof children === "object")) {
+        vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN;
     };
     return vnode;
 }
