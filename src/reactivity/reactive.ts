@@ -1,5 +1,6 @@
 import { mutableHandlers, readonlyHandlers, shallowHandlers } from "./baseHandlers";
 import { ObjectFlags } from "../shared/enum";
+import { isObject } from "../shared";
 
 export function reactive (raw) {
     return createActiveObject(raw, mutableHandlers);
@@ -14,6 +15,10 @@ export function shallowReadonly(raw) {
 }
 
 function createActiveObject (raw, baseHandler) {
+    if (!isObject(raw)) {
+        console.warn(`target ${raw} 必须是一个对象`);
+        return raw;
+    }
     return new Proxy(raw, baseHandler)
 }
 

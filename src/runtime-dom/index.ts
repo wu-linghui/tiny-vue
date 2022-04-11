@@ -4,17 +4,21 @@ function createElement (type) {
     return document.createElement(type);
 }
 
-function patchProp (el, key, val) {
+function patchProp (el, key, prevVal, nextVal) {
     const isOnEvent = (key: string) => /^on[A-Z]/.test(key);
-    isOnEvent(key) ? el.addEventListener(key.slice(2).toLowerCase(), val)
-    : el.setAttribute(key, val);
+    if (isOnEvent(key)) {
+        el.addEventListener(key.slice(2).toLowerCase(), nextVal);
+    } else {
+        if (nextVal === undefined || nextVal === null) return el.removeAttribute(key);
+        el.setAttribute(key, nextVal);
+    }
 }
 
 function insert (el, parent) {
     parent.append(el);
 }
 
-const render = createRender({
+const render: any = createRender({
     createElement,
     patchProp,
     insert

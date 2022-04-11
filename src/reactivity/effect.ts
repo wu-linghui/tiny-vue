@@ -1,17 +1,16 @@
 import { extend } from "../shared";
 
 let activeEffect;
-let shouldTrack; 
+let shouldTrack = false; 
 export class ReactiveEffect {
     private _fn: any;
-    public deps: any;
+    public deps = [];
     active = true;
     onStop?: () => void;
     public scheduler: Function | undefined;
     constructor (fn, scheduler?: Function) {
         this._fn = fn;        
         this.scheduler = scheduler;
-        this.deps = [];
     }
 
     run () {
@@ -35,7 +34,8 @@ export class ReactiveEffect {
 function clearUpDeps (effect) {    
     effect.deps.forEach((dep: any) => {
         dep.delete(effect);
-    })
+    });
+    effect.deps.length = 0;
 }
 
 export function isTracking () {
@@ -73,9 +73,13 @@ export function trigger (target, key) {
 }
 
 export function triggerEffects (dep) {
+    // debugger
     for (const effect of dep) {
         effect.scheduler ? effect.scheduler() : effect.run();
-    } 
+    }
+    // dep.forEach(effect => {
+    //     effect.scheduler ? effect.scheduler() : effect.run();        
+    // })
 }
 
 export function effect (fn, options: any = {})  {

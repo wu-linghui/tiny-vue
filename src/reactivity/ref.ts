@@ -9,8 +9,8 @@ class RefImpl {
     public dep;
     public _v_isRef: boolean =  true;
     constructor (value) {
-        this.dep = new Set();
         convert(this, value);
+        this.dep = new Set();
     }
 
     get value () {
