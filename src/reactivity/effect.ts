@@ -62,12 +62,13 @@ export function track (target, key) {
 
 export function trackEffects (dep) {
     if (dep.has(activeEffect)) return;
-    dep.add(activeEffect);
+    activeEffect &&  dep.add(activeEffect)
     activeEffect.deps.push(dep);
 }
 
 export function trigger (target, key) {
     let depsMap = targetMap.get(target);
+    if (!depsMap) return;
     let dep = depsMap.get(key);
     triggerEffects(dep);
 }
