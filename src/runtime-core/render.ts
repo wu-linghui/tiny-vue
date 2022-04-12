@@ -116,6 +116,45 @@ export function createRender (options) {
                 i++;
             }
         }
+
+        // 中间对比
+        let s1 = i;
+        let s2 = i;
+        const toBePatched = e2 - s2 + 1;
+        let patched = 0;        
+        const keyToNewIndexMap = new Map();
+        for (let index = s2; index <= e2; index++) {
+            const nextChild = c2[index];
+            keyToNewIndexMap.set(nextChild.key, index);
+        }
+
+        for (let index = s1; index <= e1; index++) {
+            const prevChild = c1[index];
+
+            if (patched >= toBePatched) {
+                remove(prevChild.el);
+                continue;
+            }
+
+            let newIndex;
+            if (prevChild.key != null) {
+                newIndex = keyToNewIndexMap.get(prevChild.key);
+            } else {
+                for (let index2 = s2; index2 < e2; index2++) {
+                    if (isSameVNodeType(prevChild, c2[index2])) {
+                        newIndex = index2;
+                        break;
+                    }
+                 
+                }
+            }
+
+            if (newIndex === undefined) {
+                remove(prevChild.el);
+            } else {
+                patch(prevChild, c2[newIndex], container, parentComponent, null);
+            }
+        }
     }
 
     function unmountChildren (children) {
