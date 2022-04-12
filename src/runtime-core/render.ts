@@ -1,5 +1,5 @@
 import { effect } from "../reactivity/effect";
-import { EMPTY_OBJ, hasChange } from "../shared";
+import { EMPTY_OBJ, getSequence, hasChange } from "../shared";
 import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -121,8 +121,12 @@ export function createRender (options) {
         let s1 = i;
         let s2 = i;
         const toBePatched = e2 - s2 + 1;
-        let patched = 0;        
+        let patched = 0;
         const keyToNewIndexMap = new Map();
+        const newIndexToOldIndexMap = new Array(toBePatched);
+        let moved = false;
+        let maxNewIndexSoFar = 0;
+        for (let i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
         for (let index = s2; index <= e2; index++) {
             const nextChild = c2[index];
             keyToNewIndexMap.set(nextChild.key, index);
@@ -137,22 +141,43 @@ export function createRender (options) {
             }
 
             let newIndex;
-            if (prevChild.key != null) {
+            if (prevChild.key !== null) {
                 newIndex = keyToNewIndexMap.get(prevChild.key);
             } else {
-                for (let index2 = s2; index2 < e2; index2++) {
+                for (let index2 = s2; index2 <= e2; index2++) {
                     if (isSameVNodeType(prevChild, c2[index2])) {
                         newIndex = index2;
                         break;
-                    }
-                 
+                    }                 
                 }
             }
 
             if (newIndex === undefined) {
                 remove(prevChild.el);
             } else {
+                newIndex >= maxNewIndexSoFar ? maxNewIndexSoFar = newIndex : moved = true;
+                newIndexToOldIndexMap[newIndex - s2] = index + 1;
                 patch(prevChild, c2[newIndex], container, parentComponent, null);
+                patched++;
+            }
+        }
+
+        const increasingNewIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : [];
+        let j = increasingNewIndexSequence.length - 1;
+
+        for (let index = toBePatched -1; index >= 0; index--) {
+            const nextIndex = index + s2;
+            const nextChild = c2[nextIndex];
+            const anchor = nextIndex + 1 < l2 ? c2[nextChild + 1].el : null;
+
+            if (newIndexToOldIndexMap[index] === 0) patch(null, nextChild, container, parentComponent, anchor);
+
+            if (moved) {
+                if (j < 0 || index !== increasingNewIndexSequence[j]) {
+                    insert(nextChild.el, container, anchor);
+                } else {
+                    j--;
+                }                    
             }
         }
     }
