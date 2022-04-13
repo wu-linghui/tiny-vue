@@ -2,6 +2,7 @@ import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ, getSequence, hasChange } from "../shared";
 import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vnode";
 
@@ -167,18 +168,18 @@ export function createRender (options) {
                 remove(prevChild.el);
             } else { // 如果存在，就进入到 patch 阶段，继续递归对比
 
-                // 确定新节点存在，储存索引映射关系
-                // newIndex 获取到当前老节点在新节点中的元素，减去 s2 是要将整个混乱的部分拆开，索引归于 0
-                // 为什么是 i + 1 是因为需要考虑 i 是 0 的情况，因为我们的索引映射表中 0 表示的是初始化状态
-                // 所以不能是 0，因此需要用到 i + 1
-
                 /* 在储存索引的时候
                 判断是否需要移动
                 如果说当前的索引 >= 记录的最大索引
                 就把当前的索引给到最大的索引
                 否则就不是一直递增，那么就是需要移动的
                 */
-                newIndex >= maxNewIndexSoFar ? maxNewIndexSoFar = newIndex : moved = true;
+               newIndex >= maxNewIndexSoFar ? maxNewIndexSoFar = newIndex : moved = true;
+
+               // 确定新节点存在，储存索引映射关系
+               // newIndex 获取到当前老节点在新节点中的元素，减去 s2 是要将整个混乱的部分拆开，索引归于 0
+               // 为什么是 i + 1 是因为需要考虑 i 是 0 的情况，因为我们的索引映射表中 0 表示的是初始化状态
+               // 所以不能是 0，因此需要用到 i + 1
                 newIndexToOldIndexMap[newIndex - s2] = index + 1;
                 patch(prevChild, c2[newIndex], container, parentComponent, null);
                 patched++;
@@ -278,17 +279,30 @@ export function createRender (options) {
     }
 
     function processComponent (oldVNode: any, newVNode: any, container: any, parentComponent: any, anchor: any) {
-        mountComponent(newVNode, container, parentComponent, anchor);
+        oldVNode ? 
+        updateComponent(oldVNode, newVNode)
+        : mountComponent(newVNode, container, parentComponent, anchor);
+    }
+
+    function updateComponent (oldVNode: any, newVNode: any) {
+        const instance = (newVNode.component = oldVNode.component);
+        if (shouldUpdateComponent(oldVNode, newVNode)) {
+            instance.next = newVNode;
+            instance.update();            
+        } else {
+            newVNode.el = oldVNode.el;
+            instance.vnode = newVNode;
+        }
     }
 
     function  mountComponent (initVNode: any, container: any, parentComponent: any, anchor: any) {
-        const instance = createComponentInstance(initVNode, parentComponent);
+        const instance = (initVNode.component = createComponentInstance(initVNode, parentComponent));
         setupComponent(instance);
         setupRenderEffect(instance, initVNode, container, anchor);
     }
 
     function setupRenderEffect (instance: any, initVNode: any, container: any, anchor: any) {
-        effect(() => {
+        instance.update = effect(() => {
             if (!instance.isMounted) {
                 const { proxy } = instance;
                 const subTree = (instance.subTree = instance.render.call(proxy));
@@ -298,6 +312,11 @@ export function createRender (options) {
                 initVNode.el = subTree.el;
                 instance.isMounted = true;
             } else {
+                const { next, vnode } = instance;
+                if (next) {
+                    next.el = vnode.el;
+                    updateComponentPreRender(instance, next);
+                }
                 const { proxy } = instance;
                 const subTree = instance.render.call(proxy);
                 const prevSubTree = instance.subTree;
@@ -310,4 +329,10 @@ export function createRender (options) {
     return {
         createApp: createAppAPI(render)
     }
+}
+
+function updateComponentPreRender (instance, nextVNode) {
+    instance.vnode = nextVNode;
+    instance.props = nextVNode.props;
+    nextVNode = null;
 }

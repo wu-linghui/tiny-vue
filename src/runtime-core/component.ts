@@ -14,6 +14,7 @@ export function createComponentInstance (initVNode, parent) {
         subTree: {},
         provides: parent? parent.provides : {},
         parent,
+        next: null,
         emit: () => {}
     };
 
