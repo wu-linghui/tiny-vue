@@ -61,8 +61,8 @@ export function track (target, key) {
 }
 
 export function trackEffects (dep) {
-    if (dep.has(activeEffect)) return;
-    activeEffect &&  dep.add(activeEffect)
+    if (dep.has(activeEffect) || !activeEffect) return;
+    dep.add(activeEffect)
     activeEffect.deps.push(dep);
 }
 
