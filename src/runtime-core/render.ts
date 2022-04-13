@@ -98,7 +98,7 @@ export function createRender (options) {
             e2--;
         }
 
-        // 新的chilren大于老的->创建新的
+        // 新的children大于老的->创建新的
         if (i > e1) {
             if (i <= e2) {
                 debugger
@@ -110,6 +110,8 @@ export function createRender (options) {
                 }
             }
         }
+
+        // 新的children大于老的->创建新的
         if (i > e2) {
             while (i <= e1) {
                 remove(c1[i].el);
@@ -118,32 +120,41 @@ export function createRender (options) {
         }
 
         // 中间对比
-        let s1 = i;
         let s2 = i;
-        const toBePatched = e2 - s2 + 1;
-        let patched = 0;
-        const keyToNewIndexMap = new Map();
+        let s1 = i; // 赋值新老vnode左侧边界指针
+        const toBePatched = e2 - s2 + 1; // 新vnode中间部分总共需要patch节点数
+        let patched = 0; // 已经完成patched数
+        const keyToNewIndexMap = new Map(); // c2-新vnode中间混乱部分映射表
+        // 储存旧节点混乱元素的索引，创建定长数组，性能更好
         const newIndexToOldIndexMap = new Array(toBePatched);
+        // chil比对新老vnode后应该移动
         let moved = false;
+        // 目前最大的索引值
         let maxNewIndexSoFar = 0;
+        // 循环初始化每一项索引，0 表示未建立映射关系
         for (let i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
+        // c2-新vnode中间混乱部分映射表添加
         for (let index = s2; index <= e2; index++) {
             const nextChild = c2[index];
             keyToNewIndexMap.set(nextChild.key, index);
         }
-
+        // 根据老vnode左侧s1边检开始循环
         for (let index = s1; index <= e1; index++) {
             const prevChild = c1[index];
 
+            // 优化对比老节点时——老vnode中间部分大于新vnode中间部分
+            // 在新vnode中间部分patched完成时直接remove掉多余的老节点的child
             if (patched >= toBePatched) {
                 remove(prevChild.el);
                 continue;
             }
 
             let newIndex;
+            // 根据chil的key到keyToNewIndexMap映射表获取到新vnode中间部分对应chil的index
             if (prevChild.key !== null) {
                 newIndex = keyToNewIndexMap.get(prevChild.key);
             } else {
+                // 如果没有key的话，就循环新vnode找出老child在新vnode对应的index
                 for (let index2 = s2; index2 <= e2; index2++) {
                     if (isSameVNodeType(prevChild, c2[index2])) {
                         newIndex = index2;
@@ -151,31 +162,55 @@ export function createRender (options) {
                     }                 
                 }
             }
-
+            // 如果newIndex为空则以为老child在新vnode中不存在remove掉
             if (newIndex === undefined) {
                 remove(prevChild.el);
-            } else {
+            } else { // 如果存在，就进入到 patch 阶段，继续递归对比
+
+                // 确定新节点存在，储存索引映射关系
+                // newIndex 获取到当前老节点在新节点中的元素，减去 s2 是要将整个混乱的部分拆开，索引归于 0
+                // 为什么是 i + 1 是因为需要考虑 i 是 0 的情况，因为我们的索引映射表中 0 表示的是初始化状态
+                // 所以不能是 0，因此需要用到 i + 1
+
+                /* 在储存索引的时候
+                判断是否需要移动
+                如果说当前的索引 >= 记录的最大索引
+                就把当前的索引给到最大的索引
+                否则就不是一直递增，那么就是需要移动的
+                */
                 newIndex >= maxNewIndexSoFar ? maxNewIndexSoFar = newIndex : moved = true;
                 newIndexToOldIndexMap[newIndex - s2] = index + 1;
                 patch(prevChild, c2[newIndex], container, parentComponent, null);
                 patched++;
             }
         }
-
+        
+        // 获取最长递增子序列索引
         const increasingNewIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : [];
+
+        // 需要两个指针 i,j
+        // j 指向获取出来的最长递增子序列的索引
+        // index 指向我们新节点
         let j = increasingNewIndexSequence.length - 1;
 
         for (let index = toBePatched -1; index >= 0; index--) {
+            // 获取新vnode里chil的下标索引
             const nextIndex = index + s2;
+            // 获取到需要插入的元素chil的vnode
             const nextChild = c2[nextIndex];
-            const anchor = nextIndex + 1 < l2 ? c2[nextChild + 1].el : null;
+            // 计算锚点
+            const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
 
+            // 通过储存旧节点混乱元素的映射表，
+            // 用新的vnode的chil下标访问如果为初始化的0则意味着该位置的chil是新的需要重新创建
             if (newIndexToOldIndexMap[index] === 0) patch(null, nextChild, container, parentComponent, anchor);
 
             if (moved) {
                 if (j < 0 || index !== increasingNewIndexSequence[j]) {
+                    // 移动位置
                     insert(nextChild.el, container, anchor);
                 } else {
+                    // 不移动
                     j--;
                 }                    
             }
