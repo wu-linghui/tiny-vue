@@ -1,6 +1,7 @@
 import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ, getSequence, hasChange } from "../shared";
 import { ShapeFlags } from "../shared/ShapeFlage";
+import { queueJobs } from "./scheduler";
 import { createComponentInstance, setupComponent } from "./component";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppAPI } from "./createApp";
@@ -313,6 +314,9 @@ export function createRender (options) {
                 instance.isMounted = true;
             } else {
                 const { next, vnode } = instance;
+                /*  component->update逻辑
+                    如果 instance.next 存在，那么就是 component 的更新部分
+                */
                 if (next) {
                     next.el = vnode.el;
                     updateComponentPreRender(instance, next);
@@ -323,7 +327,12 @@ export function createRender (options) {
                 instance.subTree = subTree;
                 patch(prevSubTree, subTree, container, instance, anchor);
             }
-        });
+        }, {
+            scheduler () {
+                queueJobs(instance.update);
+            }
+        }
+        );
     }
 
     return {
