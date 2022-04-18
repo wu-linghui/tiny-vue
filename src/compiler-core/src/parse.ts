@@ -29,6 +29,7 @@ function parseChildren (context) {
     const str = context.source;
     if (str.startsWith("{{")) node = parseInterpolation(context);
     if (str[0] === "<") /[a-z]/i.test(str[1]) && (node = parseElement(context));
+    if (!node) node = parseText(context);
     // node = parseInterpolation(context);
     nodes.push(node);
     return nodes;
@@ -45,7 +46,7 @@ function parseInterpolation (context: { source: string}) {
     advanceBy(context, openDelimiter.length);
 
     const rawContentLength = closeIndex - openDelimiter.length;
-    const rawContent = context.source.slice(0, rawContentLength);
+    const rawContent = parseTextData(context, rawContentLength);
     const content = rawContent.trim();
     advanceBy(context, rawContentLength + closeDelimiter.length);
     return {
@@ -63,6 +64,15 @@ function parseElement (context) {
     return element;
 }
 
+function parseText (context) {
+    const content = parseTextData(context, context.source.length);
+    advanceBy(context, content.length);
+    return {
+        type: NodeType.TEXT,
+        content
+    }
+}
+
 function parseTag (context, type: TagType) {
     const match: any = /^<\/?([a-z]*)/i.exec(context.source);
     const tag = match[1];
@@ -75,6 +85,10 @@ function parseTag (context, type: TagType) {
         type: NodeType.ELEMENT,
         tag
     }
+}
+
+function parseTextData (context: any, length: number) {
+    return context.source.slice(0, length);
 }
 
 
