@@ -115,7 +115,6 @@ function advanceBy (context, length: number) {
 function isEnd (context, ancestors) {
     const str = context.source;
     if (str.startsWith("</")) {
-        // if (ancestors && str.startsWith(`</${ancestors}>`)) return true;
         for (let index = ancestors.length - 1; index >= 0; index--) {
             const tag = ancestors[index].tag;
             if (startsWithEndTagOpen(str, tag)) return true;
