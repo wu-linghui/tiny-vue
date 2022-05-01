@@ -31,7 +31,7 @@ export function ref (value?) {
 }
 
 export function isRef (value) {
-    return !!value[ObjectFlags.IS_REF];
+    return value && !!value[ObjectFlags.IS_REF];
 }
 
 export function unRef (ref) {
