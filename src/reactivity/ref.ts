@@ -25,7 +25,7 @@ class RefImpl {
     }
 }
 
-export function ref (value) {  
+export function ref (value?: unknown) {  
     return new RefImpl(value);
 }
 
