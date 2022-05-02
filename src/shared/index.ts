@@ -12,6 +12,8 @@ export const EMPTY_OBJ = {};
 
 export const hasOwn = (target, key) => Object.prototype.hasOwnProperty.call(target, key);
 
+export const isArray = Array.isArray;
+
 export function getSequence(arr) {
     const p = arr.slice();
     const result = [0];
