@@ -1,4 +1,4 @@
-import { extend } from "../shared";
+import { extend, isArray } from "../shared";
 
 export let activeEffect;
 export let shouldTrack = false; 
@@ -75,7 +75,9 @@ export function trigger (target, key) {
 
 export function triggerEffects (dep) {
     // debugger
-    for (const effect of dep) {
+    if (!dep) return;
+    const effects = isArray(dep) ? dep : [...dep];
+    for (const effect of effects) {
         effect.scheduler ? effect.scheduler() : effect.run();
     }
     // dep.forEach(effect => {
