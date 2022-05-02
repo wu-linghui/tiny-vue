@@ -12,6 +12,7 @@ function createGetter (isReadonly = false, isShallowReadonly = false) {
     return function get (target, key) {
         if (key == ObjectFlags.IS_REACTIVE) return !isReadonly;
         if (key == ObjectFlags.IS_READONLY) return isReadonly;
+        if (key == ObjectFlags.RAW) return target;
         const res = Reflect.get(target, key);
 
         if (isShallowReadonly) return res;

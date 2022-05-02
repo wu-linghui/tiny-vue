@@ -24,13 +24,18 @@ function createActiveObject (raw, baseHandler) {
 
 
 export function isReactive (value) {
-    return !!value[ObjectFlags.IS_REACTIVE];
+    return value && !!value[ObjectFlags.IS_REACTIVE];
 }
 
 export function isReadonly (value) {
-    return !!value[ObjectFlags.IS_READONLY];
+    return value && !!value[ObjectFlags.IS_READONLY];
 }
 
 export function isProxy (value) {
     return isReactive(value) || isReadonly(value);
+}
+
+export function toRaw (observed) {
+    const raw = observed && observed[ObjectFlags.RAW];
+    return raw ? toRaw(raw) : observed;
 }
