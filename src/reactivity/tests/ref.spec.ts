@@ -57,6 +57,13 @@ describe("ref", () => {
       expect(typeof (b.value + 1)).toBe('number')
     })
 
+    it('should NOT unwrap ref types nested inside arrays', () => {
+        const arr = ref([1, ref(3)]).value
+        expect(isRef(arr[0])).toBe(false)
+        expect(isRef(arr[1])).toBe(true)
+        expect(arr[1].value).toBe(3)
+    })
+
     it("isRef", () => {
         const a = ref(1);
         const user = reactive({
@@ -91,4 +98,24 @@ describe("ref", () => {
         expect(proxyUser.age).toBe(10);
         expect(user.age.value).toBe(10);
     })
+
+    test('should not trigger when setting value to same proxy', () => {
+        const obj = reactive({ count: 0 })
+    
+        const a = ref(obj)
+        const spy1 = jest.fn(() => a.value)
+    
+        effect(spy1)
+    
+        a.value = obj
+        expect(spy1).toBeCalledTimes(1)
+    
+        // const b = shallowRef(obj)
+        // const spy2 = jest.fn(() => b.value)
+    
+        // effect(spy2)
+    
+        // b.value = obj
+        // expect(spy2).toBeCalledTimes(1)
+      })
 })
