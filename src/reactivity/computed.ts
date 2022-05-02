@@ -1,5 +1,5 @@
 import { createDep } from "./dep";
-import { ReactiveEffect, trackEffects, triggerEffects } from "./effect";
+import { activeEffect, isTracking, ReactiveEffect, shouldTrack, trackEffects, triggerEffects } from "./effect";
 import { toRaw } from "./reactive";
 
 class ComputedRefImpl {
@@ -20,7 +20,9 @@ class ComputedRefImpl {
 
     get value () {
         const self = toRaw(this);
-        trackEffects(self.dep || (self.dep = createDep()));
+        if (shouldTrack && activeEffect) {
+            trackEffects(self.dep || (self.dep = createDep()));            
+        }
         if (this._dirty) {
             this._dirty = false;
             this._value = this._effect.run();
